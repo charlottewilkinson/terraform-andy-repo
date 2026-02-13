@@ -8,3 +8,7 @@ variable "environment" {
   type        = string
   default     = "dev"
 }
+
+variable "cidr" {
+  description = "CIDR for my-vpc"
+}
