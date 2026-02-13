@@ -7,7 +7,10 @@ variable "aws_region" {
   default = "eu-west-2"
 }
 
-variable "lab_name" {}
+variable "lab_name" {
+  type = string
+  default = "grad-lab-1"
+}
 
 output "state_bucket_name" {
   value = local.state_bucket_name
