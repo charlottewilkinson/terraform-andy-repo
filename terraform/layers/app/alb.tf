@@ -54,15 +54,24 @@ module "alb" {
   #   }
   # }
 
-  # target_groups = {
-  #   ex-instance = {
-  #     name_prefix      = "h1"
-  #     protocol         = "HTTP"
-  #     port             = 80
-  #     target_type      = "instance"
-  #     target_id        = "i-0f6d38a07d50d080f"
-  #   }
-  # }
+  target_groups = {
+    ex-instance = {
+      name_prefix      = "h1"
+      protocol         = "HTTP"
+      port             = 80
+      target_type      = "instance"
+
+      health_check = {
+        path = "/"
+        port = 80
+        healthy_threshold = 6
+        unhealthy_threshold = 2
+        timeout = 2
+        interval = 5
+        matcher = "200"  # has to be HTTP 200 or fails
+      }
+    }
+  }
 
   # tags = {
   #   Environment = "Development"
