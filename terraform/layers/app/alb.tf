@@ -2,8 +2,8 @@ module "alb" {
   source = "terraform-aws-modules/alb/aws"
 
   name = "${var.project_name}-${var.environment}-alb"
-  vpc_id  = data.aws_vpc.vpc
-  subnets = ["subnet-abcde012", "subnet-bcde012a"]
+  vpc_id  = data.aws_vpc.vpc.id
+  subnets = data.aws_subnets.public.id
 
   # Security Group
   security_group_ingress_rules = {
