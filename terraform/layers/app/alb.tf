@@ -1,33 +1,38 @@
+resource "aws_security_group" "my_sg" {
+  name   = "my-sg"
+  vpc_id = data.aws_vpc.vpc.id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "ingress_http" {
+  security_group_id = aws_security_group.my_sg.id
+  ip_protocol       = "tcp"
+  from_port         = 80
+  to_port           = 80
+  cidr_ipv4         = "0.0.0.0/0"
+  description       = "HTTP web traffic"
+}
+
+resource "aws_vpc_security_group_ingress_rule" "ingress_https" {
+  security_group_id = aws_security_group.my_sg.id
+  ip_protocol       = "tcp"
+  from_port         = 443
+  to_port           = 443
+  cidr_ipv4         = "0.0.0.0/0"
+  description       = "HTTPS web traffic"
+}
+
+resource "aws_vpc_security_group_egress_rule" "egress_all" {
+  security_group_id = aws_security_group.my_sg.id
+  ip_protocol = "-1"
+  cidr_ipv4   = "0.0.0.0/0"
+}
+
 module "alb" {
   source = "terraform-aws-modules/alb/aws"
 
   name = "${var.project_name}-${var.environment}-alb"
   vpc_id  = data.aws_vpc.vpc.id
   subnets = data.aws_subnets.public.ids
-
-  # Security Group
-  security_group_ingress_rules = {
-    all_http = {
-      from_port   = 80
-      to_port     = 80
-      ip_protocol = "tcp"
-      description = "HTTP web traffic"
-      cidr_ipv4   = "0.0.0.0/0"
-    }
-    all_https = {
-      from_port   = 443
-      to_port     = 443
-      ip_protocol = "tcp"
-      description = "HTTPS web traffic"
-      cidr_ipv4   = "0.0.0.0/0"
-    }
-  }
-  security_group_egress_rules = {
-    all = {
-      ip_protocol = "-1"
-      cidr_ipv4   = "0.0.0.0/0"
-    }
-  }
 
   listeners = {
     http = {
