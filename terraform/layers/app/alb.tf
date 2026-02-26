@@ -1,5 +1,5 @@
 resource "aws_security_group" "my_sg" {
-  name   = "my-sg"
+  name   = "${var.project_name}-${var.environment}-sg"
   vpc_id = data.aws_vpc.vpc.id
 }
 
@@ -28,37 +28,42 @@ resource "aws_vpc_security_group_egress_rule" "egress_all" {
 }
 
 module "alb" {
-  source = "terraform-aws-modules/alb/aws"
+  source  = "terraform-aws-modules/alb/aws"
+  version = "~> 9.0"
 
-  name = "${var.project_name}-${var.environment}-alb"
-  vpc_id  = data.aws_vpc.vpc.id
-  subnets = data.aws_subnets.public.ids
+  name            = "${var.project_name}-${var.environment}-alb"
+  vpc_id          = data.aws_vpc.vpc.id
+  subnets         = data.aws_subnets.public.ids
+  security_groups = [aws_security_group.my_sg.id]
+
+  load_balancer_type    = "application"
+  create_security_group = false
+
+  target_groups = {
+    app = {
+      name_prefix = "h1"
+      protocol    = "HTTP"
+      port        = 80
+      target_type = "instance"
+      create_attachment = false
+
+      health_check = {
+        path                = "/"
+        port                = 80
+        unhealthy_threshold = 2
+        interval            = 10
+        timeout             = 5
+        matcher             = "200"
+      }
+    }
+  }
 
   listeners = {
     http = {
       port     = 80
       protocol = "HTTP"
       forward = {
-        target_group_key = "ex-instance"
-      }
-    }
-  }
-
-  target_groups = {
-    ex-instance = {
-      name_prefix      = "h1"
-      protocol         = "HTTP"
-      port             = 80
-      target_type      = "instance"
-
-      health_check = {
-        path = "/"
-        port = 80
-        healthy_threshold = 6
-        unhealthy_threshold = 2
-        timeout = 2
-        interval = 5
-        matcher = "200"  # has to be HTTP 200 or fails
+        target_group_key = "app"
       }
     }
   }
